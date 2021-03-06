@@ -1,0 +1,77 @@
+#!/usr/bin/env python3
+# coding: utf-8
+# 郑大健康系统上报
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+import time
+from datetime import datetime
+import pandas as pd
+import os
+import sys
+
+def qd(id,pw):
+    try:
+        id = str(id)
+        options = webdriver.ChromeOptions()
+        options.add_argument("--headless")
+        browser = webdriver.Chrome(options=options)
+
+        browser.get("https://jksb.v.zzu.edu.cn/")
+        time.sleep(2)
+
+        browser.switch_to.frame("my_toprr")
+        time.sleep(2)
+
+        browser.find_element_by_name(name="uid").send_keys(id)
+        browser.find_element_by_name(name="upw").send_keys(pw)
+        browser.find_element_by_name("smbtn").click()
+        time.sleep(2)
+
+        browser.switch_to.frame("zzj_top_6s")
+        time.sleep(1)
+
+        browser.find_element_by_xpath("//*[text()='本人填报']").click()
+        time.sleep(1)
+
+        browser.find_element_by_xpath("//*[text()='提交表格']").click()
+        time.sleep(1)
+
+        browser.find_element_by_xpath("//*[text()='确认']").click()
+        time.sleep(1)
+        dt = datetime.now()
+        ti = dt.strftime("%m.%d_%H:%M")
+        re="ok"
+    except Exception as e:
+        dt = datetime.now()
+        ti = dt.strftime("%m.%d_%H:%M")
+        re="error"
+        #print(e)
+        #browser.save_screenshot("/home/longfei/crontab/" + str(id) + "_" + ti + "                                         .png")
+    finally:
+        browser.close()
+        record = [id,ti,re]
+        #print(record)
+    return(record)
+
+d = datetime.now().strftime("%m.%d")
+file_name = "/home/longfei/crontab/" + d + ".log"
+pa_dat = pd.read_csv("/home/longfei/crontab/dic.txt", sep='\t',names=["id","passwd                                         "])
+
+for loop in range(2):
+    if os.path.exists(file_name):
+        log_data = pd.read_csv(file_name,sep="\t",names=["id","time","result"])
+    else:
+        os.mknod(file_name)
+        log_data = pd.DataFrame(pa_dat["id"])
+        log_data["time"] = d
+        log_data["result"] = "error"
+
+    nrow = range(pa_dat.index.size)
+
+    for i in nrow:
+        if log_data.iloc[i,2] == "error":
+            re = qd(id=pa_dat.iloc[i,0],pw=pa_dat.iloc[i,1])
+            log_data.iloc[i,:] = re
+        else:
+            pass
+    log_data.to_csv(file_name, mode='w', sep="\t", index=False, header=False)
