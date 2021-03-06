@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # coding: utf-8
-# 郑大健康系统上报
+# 郑大健康系统签到
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 import time
@@ -45,20 +45,18 @@ def qd(id,pw):
         dt = datetime.now()
         ti = dt.strftime("%m.%d_%H:%M")
         re="error"
-        #print(e)
-        #browser.save_screenshot("/home/longfei/crontab/" + str(id) + "_" + ti + "                                         .png")
+        #browser.save_screenshot("/home/user/crontab/" + str(id) + "_" + ti + ".png") # 出现错误时截图
     finally:
         browser.close()
         record = [id,ti,re]
-        #print(record)
     return(record)
 
 d = datetime.now().strftime("%m.%d")
-file_name = "/home/longfei/crontab/" + d + ".log"
-pa_dat = pd.read_csv("/home/longfei/crontab/dic.txt", sep='\t',names=["id","passwd                                         "])
+file_name = "/home/user/crontab/" + d + ".log" 
+pa_dat = pd.read_csv("/home/user/crontab/dic.txt", sep='\t',names=["id","passwd"]) # dic.txt 为tab分割的账号密码文件，可以写入多行，每行一人
 
 for loop in range(2):
-    if os.path.exists(file_name):
+    if os.path.exists(file_name): 
         log_data = pd.read_csv(file_name,sep="\t",names=["id","time","result"])
     else:
         os.mknod(file_name)
@@ -74,4 +72,7 @@ for loop in range(2):
             log_data.iloc[i,:] = re
         else:
             pass
-    log_data.to_csv(file_name, mode='w', sep="\t", index=False, header=False)
+    log_data.to_csv(file_name, mode='w', sep="\t", index=False, header=False) # 将签到结果写入文件，同一天内多次执行脚本优先读取此文件。
+  
+
+
